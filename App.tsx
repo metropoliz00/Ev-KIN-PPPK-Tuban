@@ -163,7 +163,7 @@ const App: React.FC = () => {
             alignment: AlignmentType.RIGHT,
             spacing: { before: 400 },
             children: [
-              new TextRun({ text: "Petugas Verifikator BKPSDM", italics: true }),
+              new TextRun({ text: "Petugas Verifikator", italics: true }),
             ],
           }),
         ],
@@ -193,7 +193,7 @@ const App: React.FC = () => {
           </div>
           <div className="bg-amber-900/20 backdrop-blur-sm px-6 py-3 rounded-2xl border border-white/10 flex items-center gap-3">
              <div className="w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
-             <span className="text-sm font-semibold tracking-wide">BKPSDM KABUPATEN TUBAN</span>
+             <span className="text-sm font-semibold tracking-wide">SE NO. 800.1.5.3/12833/414.203/2025</span>
           </div>
         </div>
       </header>
