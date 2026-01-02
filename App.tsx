@@ -175,7 +175,7 @@ const App: React.FC = () => {
   const labelClass = "block text-sm font-bold text-slate-700 mb-1.5 ml-1";
 
   return (
-    <div className="min-h-screen pb-20 bg-slate-50">
+    <div className="min-h-screen pb-10 bg-slate-50 flex flex-col">
       <header className="bg-gradient-to-r from-amber-600 to-yellow-500 text-white py-8 px-4 shadow-lg sticky top-0 z-50">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-5">
@@ -189,12 +189,12 @@ const App: React.FC = () => {
           </div>
           <div className="bg-amber-900/20 backdrop-blur-sm px-6 py-3 rounded-2xl border border-white/10 flex items-center gap-3">
              <div className="w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
-             <span className="text-sm font-semibold tracking-wide">BKPSDM KABUPATEN TUBAN</span>
+             <span className="text-sm font-semibold tracking-wide uppercase">SE NO 800.1.5.3/1283/414.203/2025</span>
           </div>
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <main className="max-w-6xl mx-auto px-4 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
         <div className="lg:col-span-7 space-y-6">
           <InputSection title="Identitas Pegawai">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -234,7 +234,7 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Alpa Thn N (Hari)</label>
+                  <label className={labelClass}>TKS Thn N (Hari)</label>
                   <input type="number" className={inputClass} value={formData.discipline.absencesN} onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} />
                 </div>
                 <div>
@@ -245,7 +245,7 @@ const App: React.FC = () => {
               {formData.contractType === '5_YEARS' && (
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
                   <div>
-                    <label className={labelClass}>Alpa Thn N-1 (Hari)</label>
+                    <label className={labelClass}>TKS Thn N-1 (Hari)</label>
                     <input type="number" className={inputClass} value={formData.discipline.absencesNMinus1} onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} />
                   </div>
                   <div>
@@ -309,7 +309,6 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                 <label className="text-sm font-bold text-slate-700">Kesesuaian Pendidikan</label>
-                {/* Fix: use e.target.checked */}
                 <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={formData.qualification.educationMatched} onChange={e => updateFormData('qualification.educationMatched', e.target.checked)} />
               </div>
               <div>
@@ -318,12 +317,10 @@ const App: React.FC = () => {
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                 <label className="text-sm font-bold text-slate-700">Orientasi MOOC/Klasikal (Khusus NI 2023)</label>
-                {/* Fix: use e.target.checked */}
                 <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={formData.qualification.moocOrientation} onChange={e => updateFormData('qualification.moocOrientation', e.target.checked)} />
               </div>
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
                 <label className="text-sm font-bold text-red-700">Kesehatan (Jasmani & Rohani)</label>
-                {/* Fix: use e.target.checked */}
                 <input type="checkbox" className="w-5 h-5 accent-red-600" checked={formData.isHealthy} onChange={e => updateFormData('isHealthy', e.target.checked)} />
               </div>
             </div>
@@ -396,6 +393,17 @@ const App: React.FC = () => {
           </div>
         </div>
       </main>
+
+      <footer className="mt-16 py-8 border-t border-slate-200 bg-white">
+        <div className="max-w-6xl mx-auto px-4 text-center">
+          <p className="text-slate-500 font-medium text-sm tracking-wide">
+            &copy; 2025 | Dev by <span className="text-amber-600 font-bold">Dedy Meyga Saputra, S.Pd, M.Pd</span>
+          </p>
+          <p className="text-slate-400 text-xs mt-1 uppercase tracking-widest font-bold opacity-75">
+            Kabupaten Tuban
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
