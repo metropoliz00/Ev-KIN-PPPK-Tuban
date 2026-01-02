@@ -2,7 +2,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
   EvaluationInput, 
-  EvaluationResult, 
 } from './types';
 import { calculateEvaluation } from './utils/calculations';
 import InputSection from './components/InputSection';
@@ -29,8 +28,6 @@ import {
 } from 'docx';
 import saveAs from 'file-saver';
 
-// Fix: The App component was previously truncated and missing its default export.
-// This version provides the complete UI and the required export statement.
 const App: React.FC = () => {
   const [formData, setFormData] = useState<EvaluationInput>({
     nama: '',
@@ -163,16 +160,15 @@ const App: React.FC = () => {
             alignment: AlignmentType.RIGHT,
             spacing: { before: 400 },
             children: [
-              new TextRun({ text: "Petugas Verifikator", italics: true }),
+              new TextRun({ text: "Petugas Verifikator BKPSDM", italics: true }),
             ],
           }),
         ],
       }],
     });
 
-    Packer.toBlob(doc).then(blob => {
-      saveAs(blob, `Evaluasi_PPPK_${formData.nama || 'Tanpa_Nama'}.docx`);
-    });
+    const blob = await Packer.toBlob(doc);
+    saveAs(blob, `Evaluasi_PPPK_${formData.nama || 'Tanpa_Nama'}.docx`);
   };
 
   const inputClass = "w-full px-4 py-2 rounded-xl border border-slate-200 focus:ring-2 focus:ring-amber-500 focus:border-transparent outline-none transition-all";
@@ -193,7 +189,7 @@ const App: React.FC = () => {
           </div>
           <div className="bg-amber-900/20 backdrop-blur-sm px-6 py-3 rounded-2xl border border-white/10 flex items-center gap-3">
              <div className="w-2 h-2 bg-yellow-300 rounded-full animate-pulse"></div>
-             <span className="text-sm font-semibold tracking-wide">SE NO. 800.1.5.3/12833/414.203/2025</span>
+             <span className="text-sm font-semibold tracking-wide">BKPSDM KABUPATEN TUBAN</span>
           </div>
         </div>
       </header>
@@ -238,7 +234,7 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>TKS Thn N (Hari)</label>
+                  <label className={labelClass}>Alpa Thn N (Hari)</label>
                   <input type="number" className={inputClass} value={formData.discipline.absencesN} onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} />
                 </div>
                 <div>
@@ -249,7 +245,7 @@ const App: React.FC = () => {
               {formData.contractType === '5_YEARS' && (
                 <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
                   <div>
-                    <label className={labelClass}>TKS Thn N-1 (Hari)</label>
+                    <label className={labelClass}>Alpa Thn N-1 (Hari)</label>
                     <input type="number" className={inputClass} value={formData.discipline.absencesNMinus1} onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} />
                   </div>
                   <div>
@@ -313,6 +309,7 @@ const App: React.FC = () => {
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                 <label className="text-sm font-bold text-slate-700">Kesesuaian Pendidikan</label>
+                {/* Fix: use e.target.checked */}
                 <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={formData.qualification.educationMatched} onChange={e => updateFormData('qualification.educationMatched', e.target.checked)} />
               </div>
               <div>
@@ -321,10 +318,12 @@ const App: React.FC = () => {
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
                 <label className="text-sm font-bold text-slate-700">Orientasi MOOC/Klasikal (Khusus NI 2023)</label>
+                {/* Fix: use e.target.checked */}
                 <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={formData.qualification.moocOrientation} onChange={e => updateFormData('qualification.moocOrientation', e.target.checked)} />
               </div>
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
                 <label className="text-sm font-bold text-red-700">Kesehatan (Jasmani & Rohani)</label>
+                {/* Fix: use e.target.checked */}
                 <input type="checkbox" className="w-5 h-5 accent-red-600" checked={formData.isHealthy} onChange={e => updateFormData('isHealthy', e.target.checked)} />
               </div>
             </div>
@@ -381,7 +380,6 @@ const App: React.FC = () => {
                   }`}>
                     {result.isEligible ? "DAPAT DIPERTIMBANGKAN PERPANJANGAN" : "TIDAK DIREKOMENDASIKAN PERPANJANGAN"}
                   </p>
-                  {!result.isHealthy && <p className="text-xs text-red-500 mt-2 font-bold">Keterangan: Alasan Kesehatan</p>}
                 </div>
 
                 <button 
