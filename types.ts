@@ -6,8 +6,10 @@ export interface DisciplineData {
   shortHoursN: number; // Current year deficiency
   absencesNMinus1?: number; // Previous year (for 5-year contracts)
   shortHoursNMinus1?: number; // Previous year deficiency
-  consecutiveAbsence10Days: boolean; // 10 days consecutive rule Year N
-  consecutiveAbsence10DaysNMinus1: boolean; // New: 10 days consecutive rule Year N-1
+  absentMoreThan28Days: boolean; // Ketidakhadiran > 28 hari Tahun N
+  absent10DaysConsecutive: boolean; // Ketidakhadiran 10 hari berturut-turut Tahun N
+  absentMoreThan28DaysNMinus1?: boolean; // Ketidakhadiran > 28 hari Tahun N-1
+  absent10DaysConsecutiveNMinus1?: boolean; // Ketidakhadiran 10 hari berturut-turut Tahun N-1
 }
 
 export type Predicate = 'SANGAT_BAIK' | 'BAIK' | 'BUTUH_PERBAIKAN' | 'KURANG' | 'SANGAT_KURANG' | 'TIDAK_MENGUMPULKAN';
@@ -45,6 +47,7 @@ export interface EvaluationResult {
   scoreQualification: number;
   totalScore: number;
   predicate: string;
+  recommendation: string;
   isEligible: boolean;
   isHealthy: boolean;
 }

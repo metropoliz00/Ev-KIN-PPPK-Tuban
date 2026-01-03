@@ -41,8 +41,10 @@ const App: React.FC = () => {
       shortHoursN: 0,
       absencesNMinus1: 0,
       shortHoursNMinus1: 0,
-      consecutiveAbsence10Days: false,
-      consecutiveAbsence10DaysNMinus1: false,
+      absentMoreThan28Days: false,
+      absent10DaysConsecutive: false,
+      absentMoreThan28DaysNMinus1: false,
+      absent10DaysConsecutiveNMinus1: false,
     },
     skpPredicate: 'BAIK',
     integrity: 'NIHIL',
@@ -148,7 +150,7 @@ const App: React.FC = () => {
             rows: [
               new TableRow({ children: [new TableCell({ children: [new Paragraph("Total Nilai Akhir")] }), new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: result.totalScore.toFixed(2), bold: true })] })] })] }),
               new TableRow({ children: [new TableCell({ children: [new Paragraph("Predikat Kinerja")] }), new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: result.predicate, bold: true })] })] })] }),
-              new TableRow({ children: [new TableCell({ children: [new Paragraph("Rekomendasi")] }), new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: result.isEligible ? "DAPAT DIPERTIMBANGKAN PERPANJANGAN" : "TIDAK DIREKOMENDASIKAN PERPANJANGAN", bold: true, color: result.isEligible ? "000000" : "FF0000" })] })] })] }),
+              new TableRow({ children: [new TableCell({ children: [new Paragraph("Simpulan")] }), new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: result.recommendation, bold: true, color: result.isEligible ? "000000" : "FF0000" })] })] })] }),
             ],
           }),
           new Paragraph({
@@ -185,8 +187,8 @@ const App: React.FC = () => {
                <img src={logoUrl} alt="Logo Tuban" className="h-full w-auto object-contain drop-shadow-sm" />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tight uppercase">Evaluasi PPPK TUBAN</h1>
-              <p className="text-amber-50 font-medium opacity-90 border-t border-white/20 mt-1 pt-1">Sistem Evaluasi Kinerja PPPK</p>
+              <h1 className="text-2xl font-black tracking-tight uppercase leading-tight">Evaluasi PPPK KAB. TUBAN</h1>
+              <p className="text-amber-50 font-medium opacity-90 border-t border-white/20 mt-1 pt-1">Sistem Evaluasi Kinerja</p>
             </div>
           </div>
           <div className="bg-amber-900/20 backdrop-blur-sm px-6 py-3 rounded-2xl border border-white/10 flex items-center gap-3">
@@ -198,20 +200,19 @@ const App: React.FC = () => {
 
       <main className="max-w-6xl mx-auto px-4 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
         <div className="lg:col-span-7 space-y-6">
-          {/* Identitas Section */}
           <InputSection title="Identitas Pegawai">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Nama Lengkap</label>
-                <input type="text" className={inputClass} value={formData.nama} onChange={e => updateFormData('nama', e.target.value)} />
+                <input type="text" className={inputClass} value={formData.nama} onChange={e => updateFormData('nama', e.target.value)} placeholder="Masukkan Nama Sesuai SK" />
               </div>
               <div>
                 <label className={labelClass}>NIP / NI PPPK</label>
-                <input type="text" className={inputClass} value={formData.nip} onChange={e => updateFormData('nip', e.target.value)} />
+                <input type="text" className={inputClass} value={formData.nip} onChange={e => updateFormData('nip', e.target.value)} placeholder="Masukkan NIP" />
               </div>
               <div className="md:col-span-2">
                 <label className={labelClass}>Unit Kerja</label>
-                <input type="text" className={inputClass} value={formData.unitKerja} onChange={e => updateFormData('unitKerja', e.target.value)} />
+                <input type="text" className={inputClass} value={formData.unitKerja} onChange={e => updateFormData('unitKerja', e.target.value)} placeholder="Nama Sekolah / OPD" />
               </div>
               <div>
                 <label className={labelClass}>Jenis Kontrak</label>
@@ -233,103 +234,130 @@ const App: React.FC = () => {
             </div>
           </InputSection>
 
-          {/* Disiplin Section */}
-          <InputSection title="Disiplin & Kehadiran" description="Data ketidakhadiran dan kekurangan jam kerja">
-            <div className="space-y-4">
+          <InputSection title="Disiplin & Kehadiran" description="Data TKS (Tanpa Keterangan Sah) dan Akumulasi Kekurangan Jam Kerja">
+            <div className="space-y-6">
               {/* Seksi Tahun N */}
-              <div className={`p-4 rounded-2xl border transition-colors ${formData.discipline.consecutiveAbsence10Days || formData.discipline.absencesN > 28 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
-                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/40">
-                    <div className="max-w-[80%]">
-                        <label className={`text-sm font-black uppercase tracking-tight ${formData.discipline.consecutiveAbsence10Days || formData.discipline.absencesN > 28 ? 'text-red-800' : 'text-slate-800'}`}>
-                           Mangkir 10 Hari Berturut-turut (Tahun N)
-                        </label>
-                        <p className={`text-[11px] font-medium mt-0.5 ${formData.discipline.consecutiveAbsence10Days || formData.discipline.absencesN > 28 ? 'text-red-600' : 'text-slate-500'}`}>
-                           Jika dicentang, Nilai Disiplin = 0 (Terminasi).
-                        </p>
-                    </div>
-                    <input 
-                        type="checkbox" 
-                        className="w-6 h-6 accent-red-600 rounded-lg cursor-pointer shadow-sm" 
-                        checked={formData.discipline.consecutiveAbsence10Days} 
-                        onChange={e => updateFormData('discipline.consecutiveAbsence10Days', e.target.checked)} 
-                    />
+              <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
+                    Penilaian Tahun N (Tahun Berjalan)
+                  </h4>
+                  {formData.contractType === '5_YEARS' && (
+                    <span className="text-[10px] font-black bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full uppercase">Bobot 60%</span>
+                  )}
                 </div>
-                
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="relative">
-                      <label className={labelClass}>TKS Thn N (Hari)</label>
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className={labelClass}>TKS Tahun N (Hari)</label>
                       <input 
                         type="number" 
-                        className={`${inputClass} ${formData.discipline.absencesN > 28 || formData.discipline.consecutiveAbsence10Days ? 'border-red-500 bg-red-100 text-red-900 font-bold' : ''}`} 
+                        min="0"
+                        className={`${inputClass} ${formData.discipline.absencesN > 28 ? 'border-red-500 bg-red-50' : ''}`}
                         value={formData.discipline.absencesN} 
                         onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} 
                       />
-                      {(formData.discipline.absencesN > 28 || formData.discipline.consecutiveAbsence10Days) && (
-                        <p className="text-[10px] text-red-600 font-black mt-1 px-1 flex items-center gap-1 uppercase">
-                          <span className="w-2 h-2 bg-red-600 rounded-full animate-ping"></span>
-                          Pelanggaran Fatal! Nilai: 0
-                        </p>
-                      )}
                     </div>
                     <div>
                       <label className={labelClass}>Kurang Jam Thn N (Jam)</label>
                       <input 
                         type="number" 
-                        className={`${inputClass} ${formData.discipline.consecutiveAbsence10Days ? 'opacity-50 pointer-events-none' : ''}`} 
+                        min="0"
+                        className={`${inputClass} ${formData.discipline.shortHoursN > 157.5 ? 'border-amber-500 bg-amber-50' : ''}`}
                         value={formData.discipline.shortHoursN} 
                         onChange={e => updateFormData('discipline.shortHoursN', Number(e.target.value))} 
                       />
                     </div>
                 </div>
+                
+                <div className="space-y-3 pt-2 border-t border-slate-200">
+                  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28Days ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                    <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
+                      Ketidakhadiran tanpa keterangan sah lebih dari 28 hari (Thn N)
+                    </label>
+                    <input 
+                      type="checkbox" 
+                      className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
+                      checked={formData.discipline.absentMoreThan28Days} 
+                      onChange={e => updateFormData('discipline.absentMoreThan28Days', e.target.checked)} 
+                    />
+                  </div>
+                  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absent10DaysConsecutive ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                    <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
+                      Ketidakhadiran 10 hari berturut-turut tanpa keterangan sah (Thn N)
+                    </label>
+                    <input 
+                      type="checkbox" 
+                      className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
+                      checked={formData.discipline.absent10DaysConsecutive} 
+                      onChange={e => updateFormData('discipline.absent10DaysConsecutive', e.target.checked)} 
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Seksi Tahun N-1 */}
               {formData.contractType === '5_YEARS' && (
-                <div className={`p-4 rounded-2xl border transition-colors ${formData.discipline.consecutiveAbsence10DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) > 28 ? 'bg-orange-50 border-orange-200' : 'bg-slate-50 border-slate-100'}`}>
-                   <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/40">
-                        <div className="max-w-[80%]">
-                            <label className={`text-sm font-black uppercase tracking-tight ${formData.discipline.consecutiveAbsence10DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) > 28 ? 'text-orange-800' : 'text-slate-800'}`}>
-                               Mangkir 10 Hari Berturut (Tahun N-1)
-                            </label>
-                            <p className="text-[11px] font-medium text-slate-500 mt-0.5">Berlaku untuk akumulasi penilaian kontrak 5 tahun.</p>
-                        </div>
-                        <input 
-                            type="checkbox" 
-                            className="w-6 h-6 accent-orange-600 rounded-lg cursor-pointer shadow-sm" 
-                            checked={formData.discipline.consecutiveAbsence10DaysNMinus1} 
-                            onChange={e => updateFormData('discipline.consecutiveAbsence10DaysNMinus1', e.target.checked)} 
-                        />
+                <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:shadow-sm">
+                   <div className="flex justify-between items-center mb-4">
+                    <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                      Penilaian Tahun N-1 (Tahun Sebelumnya)
+                    </h4>
+                    <span className="text-[10px] font-black bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full uppercase">Bobot 40%</span>
                    </div>
-
-                   <div className="grid grid-cols-2 gap-4">
-                        <div className="relative">
+                   <div className="grid grid-cols-2 gap-4 mb-4">
+                        <div>
                             <label className={labelClass}>TKS Thn N-1 (Hari)</label>
                             <input 
                               type="number" 
-                              className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) > 28 || formData.discipline.consecutiveAbsence10DaysNMinus1 ? 'border-orange-500 bg-orange-100 text-orange-900 font-bold' : ''}`} 
+                              min="0"
+                              className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) > 28 ? 'border-red-500 bg-red-50' : ''}`}
                               value={formData.discipline.absencesNMinus1} 
                               onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} 
                             />
-                            {((formData.discipline.absencesNMinus1 || 0) > 28 || formData.discipline.consecutiveAbsence10DaysNMinus1) && (
-                              <p className="text-[10px] text-orange-600 font-black mt-1 px-1 uppercase">Pelanggaran Fatal (N-1)! Nilai: 0</p>
-                            )}
                         </div>
                         <div>
                             <label className={labelClass}>Kurang Jam Thn N-1 (Jam)</label>
                             <input 
                               type="number" 
-                              className={`${inputClass} ${formData.discipline.consecutiveAbsence10DaysNMinus1 ? 'opacity-50 pointer-events-none' : ''}`} 
+                              min="0"
+                              className={`${inputClass} ${(formData.discipline.shortHoursNMinus1 || 0) > 157.5 ? 'border-amber-500 bg-amber-50' : ''}`}
                               value={formData.discipline.shortHoursNMinus1} 
                               onChange={e => updateFormData('discipline.shortHoursNMinus1', Number(e.target.value))} 
                             />
                         </div>
                    </div>
+
+                   <div className="space-y-3 pt-2 border-t border-slate-200">
+                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28DaysNMinus1 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                        <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
+                        Ketidakhadiran tanpa keterangan sah lebih dari 28 hari (Thn N-1)
+                        </label>
+                        <input 
+                        type="checkbox" 
+                        className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
+                        checked={formData.discipline.absentMoreThan28DaysNMinus1} 
+                        onChange={e => updateFormData('discipline.absentMoreThan28DaysNMinus1', e.target.checked)} 
+                        />
+                    </div>
+                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absent10DaysConsecutiveNMinus1 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                        <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
+                        Ketidakhadiran 10 hari berturut-turut tanpa keterangan sah (Thn N-1)
+                        </label>
+                        <input 
+                        type="checkbox" 
+                        className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
+                        checked={formData.discipline.absent10DaysConsecutiveNMinus1} 
+                        onChange={e => updateFormData('discipline.absent10DaysConsecutiveNMinus1', e.target.checked)} 
+                        />
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
           </InputSection>
 
-          {/* Section Lainnya */}
           <InputSection title="Capaian Kinerja (SKP) & Perilaku">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -359,12 +387,12 @@ const App: React.FC = () => {
           <InputSection title="Integritas & Ketersediaan Jabatan">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Hukuman Disiplin</label>
+                <label className={labelClass}>Hukuman Disiplin (LHKASN/LHKPN)</label>
                 <select className={inputClass} value={formData.integrity} onChange={e => updateFormData('integrity', e.target.value)}>
-                  <option value="NIHIL">Nihil / Tidak Ada</option>
+                  <option value="NIHIL">Nihil / Tidak Ada Pelanggaran</option>
                   <option value="RINGAN">Ringan</option>
                   <option value="SEDANG">Sedang</option>
-                  <option value="BERAT">Berat (Fatal)</option>
+                  <option value="BERAT">Berat</option>
                 </select>
               </div>
               <div>
@@ -372,7 +400,7 @@ const App: React.FC = () => {
                 <select className={inputClass} value={formData.jobAvailability} onChange={e => updateFormData('jobAvailability', e.target.value)}>
                   <option value="AVAILABLE">Tersedia</option>
                   <option value="NOT_AVAILABLE">Tidak Tersedia</option>
-                  <option value="GURU_JAM_KURANG">Guru Jam Kurang</option>
+                  <option value="GURU_JAM_KURANG">Guru Jam Kurang (Linearitas)</option>
                 </select>
               </div>
             </div>
@@ -380,21 +408,24 @@ const App: React.FC = () => {
 
           <InputSection title="Kualifikasi & Pengembangan">
             <div className="space-y-4">
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <label className="text-sm font-bold text-slate-700">Kesesuaian Pendidikan</label>
-                <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={formData.qualification.educationMatched} onChange={e => updateFormData('qualification.educationMatched', e.target.checked)} />
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <label className="text-sm font-bold text-slate-700">Kesesuaian Pendidikan (Ijazah vs Jabatan)</label>
+                <input type="checkbox" className="w-6 h-6 accent-amber-500" checked={formData.qualification.educationMatched} onChange={e => updateFormData('qualification.educationMatched', e.target.checked)} />
               </div>
               <div>
-                <label className={labelClass}>Total JP Pelatihan/Bangkom</label>
-                <input type="number" className={inputClass} value={formData.qualification.trainingJP} onChange={e => updateFormData('qualification.trainingJP', Number(e.target.value))} />
+                <label className={labelClass}>Total JP Pengembangan Kompetensi</label>
+                <input type="number" min="0" className={inputClass} value={formData.qualification.trainingJP} onChange={e => updateFormData('qualification.trainingJP', Number(e.target.value))} />
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <label className="text-sm font-bold text-slate-700">Orientasi MOOC (NI 2023)</label>
-                <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={formData.qualification.moocOrientation} onChange={e => updateFormData('qualification.moocOrientation', e.target.checked)} />
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <label className="text-sm font-bold text-slate-700">Penyelesaian Orientasi MOOC</label>
+                <input type="checkbox" className="w-6 h-6 accent-amber-500" checked={formData.qualification.moocOrientation} onChange={e => updateFormData('qualification.moocOrientation', e.target.checked)} />
               </div>
-              <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
-                <label className="text-sm font-bold text-red-700">Kesehatan (Jasmani & Rohani)</label>
-                <input type="checkbox" className="w-5 h-5 accent-red-600" checked={formData.isHealthy} onChange={e => updateFormData('isHealthy', e.target.checked)} />
+              <div className="flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100 mt-6">
+                <div className="flex flex-col">
+                    <label className="text-sm font-black text-red-700 uppercase tracking-tighter">Kesehatan Jasmani & Rohani</label>
+                    <span className="text-[10px] text-red-600/70 font-medium italic">Wajib terpenuhi untuk perpanjangan</span>
+                </div>
+                <input type="checkbox" className="w-6 h-6 accent-red-600" checked={formData.isHealthy} onChange={e => updateFormData('isHealthy', e.target.checked)} />
               </div>
             </div>
           </InputSection>
@@ -403,34 +434,37 @@ const App: React.FC = () => {
         {/* Sidebar Hasil */}
         <div className="lg:col-span-5">
           <div className="sticky top-32 space-y-6">
-            <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-              <div className={`p-6 text-white text-center transition-colors duration-500 ${result.isEligible ? 'bg-slate-800' : 'bg-red-900'}`}>
-                <h3 className="text-lg font-bold opacity-80 uppercase tracking-wider mb-1">Hasil Evaluasi</h3>
-                <div className="text-5xl font-black">{result.totalScore.toFixed(2)}</div>
-                <div className={`mt-3 inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest ${
-                  result.predicate === 'SANGAT BAIK' ? 'bg-emerald-500' :
-                  result.predicate === 'BAIK' ? 'bg-blue-500' :
-                  result.predicate === 'BUTUH PERBAIKAN' ? 'bg-amber-500' : 'bg-red-500'
+            <div className="bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
+              <div className={`p-8 text-white text-center transition-all duration-700 relative ${result.isEligible ? 'bg-slate-900' : 'bg-red-950'}`}>
+                <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z" /><path fillRule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clipRule="evenodd" /></svg>
+                </div>
+                <h3 className="text-xs font-black opacity-60 uppercase tracking-[0.2em] mb-3">Nilai Akhir Evaluasi</h3>
+                <div className="text-7xl font-black tracking-tighter drop-shadow-lg">{result.totalScore.toFixed(2)}</div>
+                <div className={`mt-5 inline-flex items-center px-6 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-lg ${
+                  result.predicate === 'SANGAT BAIK' ? 'bg-emerald-500 text-white' :
+                  result.predicate === 'BAIK' ? 'bg-blue-600 text-white' :
+                  result.predicate === 'BUTUH PERBAIKAN' ? 'bg-amber-500 text-white' : 'bg-red-600 text-white'
                 }`}>
                   {result.predicate}
                 </div>
               </div>
               
-              <div className="p-6">
-                <div className="h-64 w-full">
+              <div className="p-8">
+                <div className="h-64 w-full mb-4">
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} layout="vertical" margin={{ left: -10, right: 10 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                       <XAxis type="number" domain={[0, 100]} hide />
-                      <YAxis dataKey="name" type="category" width={80} tick={{ fontSize: 12, fontWeight: 600, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                      <YAxis dataKey="name" type="category" width={90} tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }} axisLine={false} tickLine={false} />
                       <Tooltip 
                         cursor={{ fill: '#f8fafc' }}
-                        contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)' }}
+                        contentStyle={{ borderRadius: '16px', border: 'none', boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)', fontSize: '12px', fontWeight: 'bold' }}
                       />
-                      <Bar dataKey="score" radius={[0, 10, 10, 0]} barSize={20}>
+                      <Bar dataKey="score" radius={[0, 12, 12, 0]} barSize={24}>
                         {chartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={
-                            index === 0 ? (entry.score === 0 ? '#b91c1c' : '#f59e0b') : 
+                            index === 0 ? (entry.score < 50 ? '#ef4444' : '#f59e0b') : 
                             index === 1 ? '#3b82f6' :
                             index === 2 ? '#ef4444' :
                             index === 3 ? '#10b981' :
@@ -442,25 +476,23 @@ const App: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
 
-                <div className={`mt-6 p-5 rounded-2xl border-2 text-center transition-all ${
-                  result.isEligible ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200 animate-pulse'
+                {/* Bagian Simpulan Rekomendasi */}
+                <div className={`mt-4 p-6 rounded-[1.5rem] border-2 text-center transition-all ${
+                  result.isEligible ? 'bg-emerald-50/50 border-emerald-100' : 'bg-red-50/50 border-red-100'
                 }`}>
-                  <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Rekomendasi</p>
-                  <p className={`text-lg font-black leading-tight ${
-                    result.isEligible ? 'text-emerald-700' : 'text-red-700'
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Simpulan Rekomendasi</p>
+                  <p className={`text-sm font-bold leading-relaxed tracking-tight ${
+                    result.isEligible ? 'text-emerald-900' : 'text-red-900'
                   }`}>
-                    {result.isEligible ? "DAPAT DIPERTIMBANGKAN PERPANJANGAN" : "TIDAK DIREKOMENDASIKAN PERPANJANGAN"}
+                    {result.recommendation}
                   </p>
-                  {result.scoreDiscipline === 0 && (
-                    <p className="text-[10px] font-bold text-red-500 mt-1 uppercase">Sebab: Pelanggaran Disiplin Fatal</p>
-                  )}
                 </div>
 
                 <button 
                   onClick={generateWord}
-                  className="w-full mt-6 bg-slate-800 hover:bg-slate-900 text-white font-black py-4 rounded-2xl shadow-lg transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                  className="w-full mt-8 bg-slate-900 hover:bg-black text-white font-black py-4.5 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 group"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 group-hover:animate-bounce" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
                   DOWNLOAD HASIL (.DOCX)
@@ -471,13 +503,18 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      <footer className="mt-16 py-8 border-t border-slate-200 bg-white">
+      <footer className="mt-20 py-10 border-t border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <p className="text-slate-500 font-medium text-sm tracking-wide">
-            &copy; 2025 | Dev by <span className="text-amber-600 font-bold">Dedy Meyga Saputra, S.Pd, M.Pd</span>
+          <div className="flex items-center justify-center gap-2 mb-2 opacity-50">
+             <div className="w-8 h-[1px] bg-slate-400"></div>
+             <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
+             <div className="w-8 h-[1px] bg-slate-400"></div>
+          </div>
+          <p className="text-slate-500 font-bold text-sm tracking-tight">
+            Sistem Evaluasi Kinerja &copy; 2025
           </p>
-          <p className="text-slate-400 text-xs mt-1 uppercase tracking-widest font-bold opacity-75">
-            Kabupaten Tuban
+          <p className="text-slate-400 text-xs mt-1 font-semibold opacity-80">
+            Dedy Meyga Saputra, S.Pd, M.Pd | Kabupaten Tuban
           </p>
         </div>
       </footer>
