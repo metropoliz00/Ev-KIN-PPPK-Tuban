@@ -198,6 +198,7 @@ const App: React.FC = () => {
 
       <main className="max-w-6xl mx-auto px-4 mt-10 grid grid-cols-1 lg:grid-cols-12 gap-8 flex-grow">
         <div className="lg:col-span-7 space-y-6">
+          {/* Identitas Section */}
           <InputSection title="Identitas Pegawai">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -232,84 +233,103 @@ const App: React.FC = () => {
             </div>
           </InputSection>
 
+          {/* Disiplin Section */}
           <InputSection title="Disiplin & Kehadiran" description="Data ketidakhadiran dan kekurangan jam kerja">
             <div className="space-y-4">
-              {/* Seksi Pelanggaran Tahun N */}
-              <div className="p-4 bg-red-50 rounded-2xl border border-red-100 mb-2">
-                <div className="flex items-center justify-between">
-                    <div className="max-w-[85%]">
-                        <label className="text-sm font-black text-red-800 uppercase tracking-tight">Mangkir / TKS 10 Hari Berturut-turut (Tahun N)</label>
-                        <p className="text-xs text-red-600 font-medium mt-0.5">Aturan: Mangkir 10 hari berturut-turut ATAU total > 28 hari/tahun = Nilai 0.</p>
+              {/* Seksi Tahun N */}
+              <div className={`p-4 rounded-2xl border transition-colors ${formData.discipline.consecutiveAbsence10Days || formData.discipline.absencesN > 28 ? 'bg-red-50 border-red-200' : 'bg-slate-50 border-slate-100'}`}>
+                <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/40">
+                    <div className="max-w-[80%]">
+                        <label className={`text-sm font-black uppercase tracking-tight ${formData.discipline.consecutiveAbsence10Days || formData.discipline.absencesN > 28 ? 'text-red-800' : 'text-slate-800'}`}>
+                           Mangkir 10 Hari Berturut-turut (Tahun N)
+                        </label>
+                        <p className={`text-[11px] font-medium mt-0.5 ${formData.discipline.consecutiveAbsence10Days || formData.discipline.absencesN > 28 ? 'text-red-600' : 'text-slate-500'}`}>
+                           Jika dicentang, Nilai Disiplin = 0 (Terminasi).
+                        </p>
                     </div>
                     <input 
                         type="checkbox" 
-                        className="w-6 h-6 accent-red-600 rounded-lg cursor-pointer" 
+                        className="w-6 h-6 accent-red-600 rounded-lg cursor-pointer shadow-sm" 
                         checked={formData.discipline.consecutiveAbsence10Days} 
                         onChange={e => updateFormData('discipline.consecutiveAbsence10Days', e.target.checked)} 
                     />
                 </div>
-              </div>
-
-              {!formData.discipline.consecutiveAbsence10Days && (
+                
                 <div className="grid grid-cols-2 gap-4">
                     <div className="relative">
                       <label className={labelClass}>TKS Thn N (Hari)</label>
                       <input 
                         type="number" 
-                        className={`${inputClass} ${formData.discipline.absencesN > 28 ? 'border-red-500 bg-red-50' : ''}`} 
+                        className={`${inputClass} ${formData.discipline.absencesN > 28 || formData.discipline.consecutiveAbsence10Days ? 'border-red-500 bg-red-100 text-red-900 font-bold' : ''}`} 
                         value={formData.discipline.absencesN} 
                         onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} 
                       />
-                      {formData.discipline.absencesN > 28 && <p className="text-[10px] text-red-600 font-bold mt-1 px-1">MELEBIHI BATAS 28 HARI!</p>}
+                      {(formData.discipline.absencesN > 28 || formData.discipline.consecutiveAbsence10Days) && (
+                        <p className="text-[10px] text-red-600 font-black mt-1 px-1 flex items-center gap-1 uppercase">
+                          <span className="w-2 h-2 bg-red-600 rounded-full animate-ping"></span>
+                          Pelanggaran Fatal! Nilai: 0
+                        </p>
+                      )}
                     </div>
                     <div>
                       <label className={labelClass}>Kurang Jam Thn N (Jam)</label>
-                      <input type="number" className={inputClass} value={formData.discipline.shortHoursN} onChange={e => updateFormData('discipline.shortHoursN', Number(e.target.value))} />
+                      <input 
+                        type="number" 
+                        className={`${inputClass} ${formData.discipline.consecutiveAbsence10Days ? 'opacity-50 pointer-events-none' : ''}`} 
+                        value={formData.discipline.shortHoursN} 
+                        onChange={e => updateFormData('discipline.shortHoursN', Number(e.target.value))} 
+                      />
                     </div>
                 </div>
-              )}
+              </div>
 
-              {/* Seksi Pelanggaran Tahun N-1 (Khusus 5 Tahun) */}
+              {/* Seksi Tahun N-1 */}
               {formData.contractType === '5_YEARS' && (
-                <div className="pt-4 border-t border-slate-100 space-y-4">
-                   <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100">
-                        <div className="flex items-center justify-between">
-                            <div className="max-w-[85%]">
-                                <label className="text-sm font-black text-orange-800 uppercase tracking-tight">Mangkir / TKS 10 Hari Berturut-turut (Tahun N-1)</label>
-                                <p className="text-xs text-orange-600 font-medium mt-0.5">Aturan yang sama berlaku: 10 hari berturut-turut ATAU total > 28 hari.</p>
-                            </div>
-                            <input 
-                                type="checkbox" 
-                                className="w-6 h-6 accent-orange-600 rounded-lg cursor-pointer" 
-                                checked={formData.discipline.consecutiveAbsence10DaysNMinus1} 
-                                onChange={e => updateFormData('discipline.consecutiveAbsence10DaysNMinus1', e.target.checked)} 
-                            />
+                <div className={`p-4 rounded-2xl border transition-colors ${formData.discipline.consecutiveAbsence10DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) > 28 ? 'bg-orange-50 border-orange-200' : 'bg-slate-50 border-slate-100'}`}>
+                   <div className="flex items-center justify-between mb-4 pb-4 border-b border-white/40">
+                        <div className="max-w-[80%]">
+                            <label className={`text-sm font-black uppercase tracking-tight ${formData.discipline.consecutiveAbsence10DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) > 28 ? 'text-orange-800' : 'text-slate-800'}`}>
+                               Mangkir 10 Hari Berturut (Tahun N-1)
+                            </label>
+                            <p className="text-[11px] font-medium text-slate-500 mt-0.5">Berlaku untuk akumulasi penilaian kontrak 5 tahun.</p>
                         </div>
+                        <input 
+                            type="checkbox" 
+                            className="w-6 h-6 accent-orange-600 rounded-lg cursor-pointer shadow-sm" 
+                            checked={formData.discipline.consecutiveAbsence10DaysNMinus1} 
+                            onChange={e => updateFormData('discipline.consecutiveAbsence10DaysNMinus1', e.target.checked)} 
+                        />
                    </div>
 
-                   {!formData.discipline.consecutiveAbsence10DaysNMinus1 && (
-                     <div className="grid grid-cols-2 gap-4">
+                   <div className="grid grid-cols-2 gap-4">
                         <div className="relative">
                             <label className={labelClass}>TKS Thn N-1 (Hari)</label>
                             <input 
                               type="number" 
-                              className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) > 28 ? 'border-orange-500 bg-orange-50' : ''}`} 
+                              className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) > 28 || formData.discipline.consecutiveAbsence10DaysNMinus1 ? 'border-orange-500 bg-orange-100 text-orange-900 font-bold' : ''}`} 
                               value={formData.discipline.absencesNMinus1} 
                               onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} 
                             />
-                            {(formData.discipline.absencesNMinus1 || 0) > 28 && <p className="text-[10px] text-orange-600 font-bold mt-1 px-1">MELEBIHI BATAS 28 HARI!</p>}
+                            {((formData.discipline.absencesNMinus1 || 0) > 28 || formData.discipline.consecutiveAbsence10DaysNMinus1) && (
+                              <p className="text-[10px] text-orange-600 font-black mt-1 px-1 uppercase">Pelanggaran Fatal (N-1)! Nilai: 0</p>
+                            )}
                         </div>
                         <div>
                             <label className={labelClass}>Kurang Jam Thn N-1 (Jam)</label>
-                            <input type="number" className={inputClass} value={formData.discipline.shortHoursNMinus1} onChange={e => updateFormData('discipline.shortHoursNMinus1', Number(e.target.value))} />
+                            <input 
+                              type="number" 
+                              className={`${inputClass} ${formData.discipline.consecutiveAbsence10DaysNMinus1 ? 'opacity-50 pointer-events-none' : ''}`} 
+                              value={formData.discipline.shortHoursNMinus1} 
+                              onChange={e => updateFormData('discipline.shortHoursNMinus1', Number(e.target.value))} 
+                            />
                         </div>
-                     </div>
-                   )}
+                   </div>
                 </div>
               )}
             </div>
           </InputSection>
 
+          {/* Section Lainnya */}
           <InputSection title="Capaian Kinerja (SKP) & Perilaku">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -344,7 +364,7 @@ const App: React.FC = () => {
                   <option value="NIHIL">Nihil / Tidak Ada</option>
                   <option value="RINGAN">Ringan</option>
                   <option value="SEDANG">Sedang</option>
-                  <option value="BERAT">Berat</option>
+                  <option value="BERAT">Berat (Fatal)</option>
                 </select>
               </div>
               <div>
@@ -369,7 +389,7 @@ const App: React.FC = () => {
                 <input type="number" className={inputClass} value={formData.qualification.trainingJP} onChange={e => updateFormData('qualification.trainingJP', Number(e.target.value))} />
               </div>
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl">
-                <label className="text-sm font-bold text-slate-700">Orientasi MOOC/Klasikal (Khusus NI 2023)</label>
+                <label className="text-sm font-bold text-slate-700">Orientasi MOOC (NI 2023)</label>
                 <input type="checkbox" className="w-5 h-5 accent-amber-500" checked={formData.qualification.moocOrientation} onChange={e => updateFormData('qualification.moocOrientation', e.target.checked)} />
               </div>
               <div className="flex items-center justify-between p-3 bg-red-50 rounded-xl border border-red-100">
@@ -380,10 +400,11 @@ const App: React.FC = () => {
           </InputSection>
         </div>
 
+        {/* Sidebar Hasil */}
         <div className="lg:col-span-5">
           <div className="sticky top-32 space-y-6">
             <div className="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
-              <div className="bg-slate-800 p-6 text-white text-center">
+              <div className={`p-6 text-white text-center transition-colors duration-500 ${result.isEligible ? 'bg-slate-800' : 'bg-red-900'}`}>
                 <h3 className="text-lg font-bold opacity-80 uppercase tracking-wider mb-1">Hasil Evaluasi</h3>
                 <div className="text-5xl font-black">{result.totalScore.toFixed(2)}</div>
                 <div className={`mt-3 inline-block px-4 py-1 rounded-full text-xs font-black uppercase tracking-widest ${
@@ -409,7 +430,7 @@ const App: React.FC = () => {
                       <Bar dataKey="score" radius={[0, 10, 10, 0]} barSize={20}>
                         {chartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={
-                            index === 0 ? '#f59e0b' : 
+                            index === 0 ? (entry.score === 0 ? '#b91c1c' : '#f59e0b') : 
                             index === 1 ? '#3b82f6' :
                             index === 2 ? '#ef4444' :
                             index === 3 ? '#10b981' :
@@ -422,7 +443,7 @@ const App: React.FC = () => {
                 </div>
 
                 <div className={`mt-6 p-5 rounded-2xl border-2 text-center transition-all ${
-                  result.isEligible ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200'
+                  result.isEligible ? 'bg-emerald-50 border-emerald-200' : 'bg-red-50 border-red-200 animate-pulse'
                 }`}>
                   <p className="text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Rekomendasi</p>
                   <p className={`text-lg font-black leading-tight ${
@@ -430,6 +451,9 @@ const App: React.FC = () => {
                   }`}>
                     {result.isEligible ? "DAPAT DIPERTIMBANGKAN PERPANJANGAN" : "TIDAK DIREKOMENDASIKAN PERPANJANGAN"}
                   </p>
+                  {result.scoreDiscipline === 0 && (
+                    <p className="text-[10px] font-bold text-red-500 mt-1 uppercase">Sebab: Pelanggaran Disiplin Fatal</p>
+                  )}
                 </div>
 
                 <button 

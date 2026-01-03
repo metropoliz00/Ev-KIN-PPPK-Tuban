@@ -9,16 +9,16 @@ import {
 } from '../types';
 
 const getAbsenceScore = (days: number): number => {
-  if (days === 0) return 100;
+  if (days <= 0) return 100;
   if (days <= 2) return 80;
   if (days <= 20) return 30;
   if (days <= 27) return 20;
-  if (days === 28) return 10; // Mendekati ambang batas terminasi
-  return 0; // Lebih dari 28 hari
+  if (days <= 28) return 10;
+  return 0; // Lebih dari 28 hari sesuai permintaan user
 };
 
 const calculateDisciplineScore = (data: DisciplineData, type: ContractType): number => {
-  // Aturan Mutlak: Jika ada TKS 10 hari berturut-turut ATAU total TKS > 28 hari di tahun berjalan
+  // Aturan Mutlak Tahun N: 10 hari berturut-turut ATAU total > 28 hari
   if (data.consecutiveAbsence10Days || data.absencesN > 28) {
     return 0;
   }
@@ -28,8 +28,7 @@ const calculateDisciplineScore = (data: DisciplineData, type: ContractType): num
     if (data.shortHoursN > 157.5) score -= 10;
     return Math.max(0, score);
   } else {
-    // Kontrak 5 Tahun
-    // Cek juga pelanggaran fatal di tahun sebelumnya (N-1)
+    // Kontrak 5 Tahun - Cek Pelanggaran Fatal Tahun N-1
     if (data.consecutiveAbsence10DaysNMinus1 || (data.absencesNMinus1 || 0) > 28) {
         return 0;
     }
@@ -133,7 +132,9 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   else if (totalScore >= 42) predicate = 'KURANG';
   else predicate = 'SANGAT KURANG';
 
-  const isEligible = totalScore >= 53;
+  // FIX BUG: Pegawai TIDAK ELIGIBLE jika Nilai Disiplin adalah 0 (Pelanggaran Fatal)
+  // Atau jika Nilai Integritas Sangat Rendah (Hukdis Berat)
+  const isEligible = totalScore >= 53 && sDiscipline > 0 && sIntegrity > 10;
 
   return {
     scoreDiscipline: sDiscipline,
