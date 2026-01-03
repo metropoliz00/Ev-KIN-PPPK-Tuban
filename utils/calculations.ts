@@ -26,8 +26,8 @@ const getAbsenceScore = (days: number, isConsecutive: boolean): number => {
 };
 
 /**
- * Menghitung skor disiplin untuk satu tahun anggaran tertentu (Tahun N atau N-1).
- * Mengakomodasi pengurangan 10 poin jika kekurangan jam kerja > 157.5 jam.
+ * Menghitung skor disiplin tahunan.
+ * Mengurangi 10 poin jika akumulasi kekurangan jam kerja > 157.5 jam.
  */
 const calculateYearlyDisciplineScore = (
   days: number, 
@@ -35,13 +35,10 @@ const calculateYearlyDisciplineScore = (
   isFatalMoreThan28: boolean, 
   isFatalConsecutive10: boolean
 ): number => {
-  // Base score berdasarkan hari TKS dan kondisi fatal
   let score = getAbsenceScore(days, isFatalConsecutive10 || isFatalMoreThan28 || days >= 28);
   
-  // Jika sudah 0 (pelanggaran berat), tidak perlu dikurangi lagi
   if (score === 0) return 0;
 
-  // Kekurangan Jam Kerja > 157.5 jam mengurangi skor sebesar 10 poin sesuai instruksi
   if (shortHours > 157.5) {
     score -= 10;
   }
@@ -79,7 +76,7 @@ const calculateDisciplineScore = (data: DisciplineData, type: ContractType): num
       data.absent10DaysConsecutive
     );
     
-    // Gabungan bobot 40/60 dari skor maksimal (100)
+    // Gabungan bobot 40% tahun sebelumnya dan 60% tahun berjalan
     return (scoreNMinus1 * 0.4) + (scoreN * 0.6);
   }
 };
@@ -126,7 +123,7 @@ const getJPScore = (jp: number): number => {
 };
 
 export const calculateEvaluation = (input: EvaluationInput): EvaluationResult => {
-  // Prasyarat Kesehatan
+  // Syarat Mutlak: Kesehatan
   if (!input.isHealthy) {
     return {
       scoreDiscipline: 0,
@@ -143,22 +140,31 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
     };
   }
 
+  // 1. Disiplin (Bobot 40%)
   const sDiscipline = calculateDisciplineScore(input.discipline, input.contractType);
+  
+  // 2. SKP (Bobot 15%)
   const sSKP = getPredicateScore(input.skpPredicate);
+  
+  // 3. Integritas (Bobot 10%)
   const sIntegrity = getIntegrityScore(input.integrity);
   
+  // 4. Jabatan (Bobot 10%)
   let sJob = 0;
   if (input.jobAvailability === 'AVAILABLE') sJob = 100;
   else sJob = 0;
 
+  // 5. Perilaku (Bobot 15%)
   const sBehavior = getBehaviorScore(input.behaviorPredicate);
 
+  // 6. Kualifikasi (Bobot 10%)
   const scoreEdu = input.qualification.educationMatched ? 100 : 0;
   const scoreJP = getJPScore(input.qualification.trainingJP);
   const scoreMOOC = input.qualification.moocOrientation ? 100 : 0;
+  // Pembobotan internal kualifikasi (Pendidikan 40%, JP 40%, MOOC 20%)
   const sQualification = (scoreEdu * 0.4) + (scoreJP * 0.4) + (scoreMOOC * 0.2);
 
-  // Kalkulasi Nilai Akhir Berdasarkan Bobot Final (Disiplin 40%, SKP 15%, Perilaku 15%, dst)
+  // Kalkulasi Nilai Akhir sesuai Bobot yang Ditentukan
   const totalScore = 
     (sDiscipline * 0.4) + 
     (sSKP * 0.15) + 
@@ -167,8 +173,7 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
     (sBehavior * 0.15) + 
     (sQualification * 0.1);
 
-  // Penentuan Predikat Sesuai Rentang Nilai yang Diinstruksikan
-  // Sangat Baik: 90-100, Baik: 74-89, Butuh Perbaikan: 53-73, Kurang: 42-52, Sangat Kurang: < 42
+  // Penentuan Predikat berdasarkan Rentang Nilai
   let predicate = '';
   if (totalScore >= 90) {
     predicate = 'SANGAT BAIK';
@@ -186,7 +191,7 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   let recommendation = '';
   const scoreLabel = totalScore.toFixed(2);
 
-  // Logika Kelayakan Perpanjangan Berdasarkan Predikat
+  // Simpulan Rekomendasi berdasarkan Predikat
   if (predicate === 'SANGAT BAIK') {
     isEligible = true;
     recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat SANGAT BAIK, maka yang bersangkutan DIREKOMENDASIKAN UNTUK DIPERPANJANG masa perjanjian kerjanya.`;

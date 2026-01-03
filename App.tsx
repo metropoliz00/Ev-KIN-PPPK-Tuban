@@ -129,7 +129,7 @@ const App: React.FC = () => {
                 children: [
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Kriteria", bold: true })] })] }),
                   new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Bobot", bold: true })] })] }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Skor", bold: true })] })] }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: "Skor (0-100)", bold: true })] })] }),
                 ]
               }),
               ...chartData.map(item => new TableRow({
@@ -253,7 +253,7 @@ const App: React.FC = () => {
                       <input 
                         type="number" 
                         min="0"
-                        className={`${inputClass} ${formData.discipline.absencesN > 28 ? 'border-red-500 bg-red-50' : ''}`}
+                        className={`${inputClass} ${formData.discipline.absencesN >= 28 ? 'border-red-500 bg-red-50' : ''}`}
                         value={formData.discipline.absencesN} 
                         onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} 
                       />
@@ -271,14 +271,14 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="space-y-3 pt-2 border-t border-slate-200">
-                  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28Days ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28Days || formData.discipline.absencesN >= 28 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
                     <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
-                      Ketidakhadiran tanpa keterangan sah lebih dari 28 hari (Thn N)
+                      Ketidakhadiran tanpa keterangan sah >= 28 hari (Thn N)
                     </label>
                     <input 
                       type="checkbox" 
                       className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
-                      checked={formData.discipline.absentMoreThan28Days} 
+                      checked={formData.discipline.absentMoreThan28Days || formData.discipline.absencesN >= 28} 
                       onChange={e => updateFormData('discipline.absentMoreThan28Days', e.target.checked)} 
                     />
                   </div>
@@ -312,7 +312,7 @@ const App: React.FC = () => {
                             <input 
                               type="number" 
                               min="0"
-                              className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) > 28 ? 'border-red-500 bg-red-50' : ''}`}
+                              className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) >= 28 ? 'border-red-500 bg-red-50' : ''}`}
                               value={formData.discipline.absencesNMinus1} 
                               onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} 
                             />
@@ -330,14 +330,14 @@ const App: React.FC = () => {
                    </div>
 
                    <div className="space-y-3 pt-2 border-t border-slate-200">
-                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28DaysNMinus1 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) >= 28 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
                         <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
-                        Ketidakhadiran tanpa keterangan sah lebih dari 28 hari (Thn N-1)
+                        Ketidakhadiran tanpa keterangan sah >= 28 hari (Thn N-1)
                         </label>
                         <input 
                         type="checkbox" 
                         className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
-                        checked={formData.discipline.absentMoreThan28DaysNMinus1} 
+                        checked={formData.discipline.absentMoreThan28DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) >= 28} 
                         onChange={e => updateFormData('discipline.absentMoreThan28DaysNMinus1', e.target.checked)} 
                         />
                     </div>
@@ -361,7 +361,7 @@ const App: React.FC = () => {
           <InputSection title="Capaian Kinerja (SKP) & Perilaku">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className={labelClass}>Predikat SKP</label>
+                <label className={labelClass}>Predikat SKP (Bobot 15%)</label>
                 <select className={inputClass} value={formData.skpPredicate} onChange={e => updateFormData('skpPredicate', e.target.value)}>
                   <option value="SANGAT_BAIK">Sangat Baik</option>
                   <option value="BAIK">Baik</option>
@@ -372,7 +372,7 @@ const App: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Predikat Perilaku</label>
+                <label className={labelClass}>Predikat Perilaku (Bobot 15%)</label>
                 <select className={inputClass} value={formData.behaviorPredicate} onChange={e => updateFormData('behaviorPredicate', e.target.value)}>
                   <option value="SANGAT_BAIK">Sangat Baik</option>
                   <option value="BAIK">Baik</option>
@@ -396,7 +396,7 @@ const App: React.FC = () => {
                 </select>
               </div>
               <div>
-                <label className={labelClass}>Formasi Jabatan</label>
+                <label className={labelClass}>Formasi Jabatan (Bobot 10%)</label>
                 <select className={inputClass} value={formData.jobAvailability} onChange={e => updateFormData('jobAvailability', e.target.value)}>
                   <option value="AVAILABLE">Tersedia</option>
                   <option value="NOT_AVAILABLE">Tidak Tersedia</option>
@@ -406,7 +406,7 @@ const App: React.FC = () => {
             </div>
           </InputSection>
 
-          <InputSection title="Kualifikasi & Pengembangan">
+          <InputSection title="Kualifikasi & Pengembangan (Bobot 10%)">
             <div className="space-y-4">
               <div className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <label className="text-sm font-bold text-slate-700">Kesesuaian Pendidikan (Ijazah vs Jabatan)</label>
@@ -420,10 +420,10 @@ const App: React.FC = () => {
                 <label className="text-sm font-bold text-slate-700">Penyelesaian Orientasi MOOC</label>
                 <input type="checkbox" className="w-6 h-6 accent-amber-500" checked={formData.qualification.moocOrientation} onChange={e => updateFormData('qualification.moocOrientation', e.target.checked)} />
               </div>
-              <div className="flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100 mt-6">
+              <div className="flex items-center justify-between p-4 bg-red-50 rounded-2xl border border-red-100 mt-6 transition-all hover:bg-red-100/50">
                 <div className="flex flex-col">
                     <label className="text-sm font-black text-red-700 uppercase tracking-tighter">Kesehatan Jasmani & Rohani</label>
-                    <span className="text-[10px] text-red-600/70 font-medium italic">Wajib terpenuhi untuk perpanjangan</span>
+                    <span className="text-[10px] text-red-600/70 font-medium italic">Prasyarat utama perpanjangan kontrak</span>
                 </div>
                 <input type="checkbox" className="w-6 h-6 accent-red-600" checked={formData.isHealthy} onChange={e => updateFormData('isHealthy', e.target.checked)} />
               </div>
@@ -514,7 +514,7 @@ const App: React.FC = () => {
             Sistem Evaluasi Kinerja &copy; 2025
           </p>
           <p className="text-slate-400 text-xs mt-1 font-semibold opacity-80">
-            Dedy Meyga Saputra, S.Pd, M.Pd | Kabupaten Tuban
+            Dev by Dedy Meyga Saputra, S.Pd, M.Pd | Kabupaten Tuban
           </p>
         </div>
       </footer>
