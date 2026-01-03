@@ -13,17 +13,28 @@ const getAbsenceScore = (days: number): number => {
   if (days <= 2) return 80;
   if (days <= 20) return 30;
   if (days <= 27) return 20;
-  return 0;
+  if (days === 28) return 10; // Mendekati ambang batas terminasi
+  return 0; // Lebih dari 28 hari
 };
 
 const calculateDisciplineScore = (data: DisciplineData, type: ContractType): number => {
+  // Aturan Mutlak: Jika ada TKS 10 hari berturut-turut ATAU total TKS > 28 hari di tahun berjalan
+  if (data.consecutiveAbsence10Days || data.absencesN > 28) {
+    return 0;
+  }
+
   if (type === '1_YEAR') {
     let score = getAbsenceScore(data.absencesN);
     if (data.shortHoursN > 157.5) score -= 10;
     return Math.max(0, score);
   } else {
-    // 5 Year Contract logic
-    // N-1 (40% weight of discipline score), N (60% weight of discipline score)
+    // Kontrak 5 Tahun
+    // Cek juga pelanggaran fatal di tahun sebelumnya (N-1)
+    if (data.consecutiveAbsence10DaysNMinus1 || (data.absencesNMinus1 || 0) > 28) {
+        return 0;
+    }
+
+    // Perhitungan Berbobot: N-1 (40%), N (60%)
     const scoreNMinus1Base = getAbsenceScore(data.absencesNMinus1 || 0);
     const scoreNMinus1 = (data.shortHoursNMinus1 || 0) > 157.5 ? scoreNMinus1Base - 10 : scoreNMinus1Base;
     
@@ -101,13 +112,10 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
 
   const sBehavior = getBehaviorScore(input.behaviorPredicate);
 
-  // Qualification: Education (50% of the 10%) + Training (accumulated)
   const scoreEdu = input.qualification.educationMatched ? 100 : 0;
   const scoreJP = getJPScore(input.qualification.trainingJP);
   const scoreMOOC = input.qualification.moocOrientation ? 100 : 0;
   
-  // prompt specifies: Edu (100/0) + Development (JP scale + MOOC). 
-  // We'll average these components for the qualification score.
   const sQualification = (scoreEdu * 0.4) + (scoreJP * 0.4) + (scoreMOOC * 0.2);
 
   const totalScore = 
@@ -125,7 +133,6 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   else if (totalScore >= 42) predicate = 'KURANG';
   else predicate = 'SANGAT KURANG';
 
-  // Perpanjangan dipertimbangkan jika Sangat Baik, Baik, atau Butuh Perbaikan
   const isEligible = totalScore >= 53;
 
   return {

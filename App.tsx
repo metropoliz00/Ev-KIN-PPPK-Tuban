@@ -41,6 +41,8 @@ const App: React.FC = () => {
       shortHoursN: 0,
       absencesNMinus1: 0,
       shortHoursNMinus1: 0,
+      consecutiveAbsence10Days: false,
+      consecutiveAbsence10DaysNMinus1: false,
     },
     skpPredicate: 'BAIK',
     integrity: 'NIHIL',
@@ -232,26 +234,77 @@ const App: React.FC = () => {
 
           <InputSection title="Disiplin & Kehadiran" description="Data ketidakhadiran dan kekurangan jam kerja">
             <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>TKS Thn N (Hari)</label>
-                  <input type="number" className={inputClass} value={formData.discipline.absencesN} onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} />
-                </div>
-                <div>
-                  <label className={labelClass}>Kurang Jam Thn N (Jam)</label>
-                  <input type="number" className={inputClass} value={formData.discipline.shortHoursN} onChange={e => updateFormData('discipline.shortHoursN', Number(e.target.value))} />
+              {/* Seksi Pelanggaran Tahun N */}
+              <div className="p-4 bg-red-50 rounded-2xl border border-red-100 mb-2">
+                <div className="flex items-center justify-between">
+                    <div className="max-w-[85%]">
+                        <label className="text-sm font-black text-red-800 uppercase tracking-tight">Mangkir / TKS 10 Hari Berturut-turut (Tahun N)</label>
+                        <p className="text-xs text-red-600 font-medium mt-0.5">Aturan: Mangkir 10 hari berturut-turut ATAU total > 28 hari/tahun = Nilai 0.</p>
+                    </div>
+                    <input 
+                        type="checkbox" 
+                        className="w-6 h-6 accent-red-600 rounded-lg cursor-pointer" 
+                        checked={formData.discipline.consecutiveAbsence10Days} 
+                        onChange={e => updateFormData('discipline.consecutiveAbsence10Days', e.target.checked)} 
+                    />
                 </div>
               </div>
+
+              {!formData.discipline.consecutiveAbsence10Days && (
+                <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
+                      <label className={labelClass}>TKS Thn N (Hari)</label>
+                      <input 
+                        type="number" 
+                        className={`${inputClass} ${formData.discipline.absencesN > 28 ? 'border-red-500 bg-red-50' : ''}`} 
+                        value={formData.discipline.absencesN} 
+                        onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} 
+                      />
+                      {formData.discipline.absencesN > 28 && <p className="text-[10px] text-red-600 font-bold mt-1 px-1">MELEBIHI BATAS 28 HARI!</p>}
+                    </div>
+                    <div>
+                      <label className={labelClass}>Kurang Jam Thn N (Jam)</label>
+                      <input type="number" className={inputClass} value={formData.discipline.shortHoursN} onChange={e => updateFormData('discipline.shortHoursN', Number(e.target.value))} />
+                    </div>
+                </div>
+              )}
+
+              {/* Seksi Pelanggaran Tahun N-1 (Khusus 5 Tahun) */}
               {formData.contractType === '5_YEARS' && (
-                <div className="grid grid-cols-2 gap-4 pt-4 border-t border-slate-100">
-                  <div>
-                    <label className={labelClass}>TKS Thn N-1 (Hari)</label>
-                    <input type="number" className={inputClass} value={formData.discipline.absencesNMinus1} onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Kurang Jam Thn N-1 (Jam)</label>
-                    <input type="number" className={inputClass} value={formData.discipline.shortHoursNMinus1} onChange={e => updateFormData('discipline.shortHoursNMinus1', Number(e.target.value))} />
-                  </div>
+                <div className="pt-4 border-t border-slate-100 space-y-4">
+                   <div className="p-4 bg-orange-50 rounded-2xl border border-orange-100">
+                        <div className="flex items-center justify-between">
+                            <div className="max-w-[85%]">
+                                <label className="text-sm font-black text-orange-800 uppercase tracking-tight">Mangkir / TKS 10 Hari Berturut-turut (Tahun N-1)</label>
+                                <p className="text-xs text-orange-600 font-medium mt-0.5">Aturan yang sama berlaku: 10 hari berturut-turut ATAU total > 28 hari.</p>
+                            </div>
+                            <input 
+                                type="checkbox" 
+                                className="w-6 h-6 accent-orange-600 rounded-lg cursor-pointer" 
+                                checked={formData.discipline.consecutiveAbsence10DaysNMinus1} 
+                                onChange={e => updateFormData('discipline.consecutiveAbsence10DaysNMinus1', e.target.checked)} 
+                            />
+                        </div>
+                   </div>
+
+                   {!formData.discipline.consecutiveAbsence10DaysNMinus1 && (
+                     <div className="grid grid-cols-2 gap-4">
+                        <div className="relative">
+                            <label className={labelClass}>TKS Thn N-1 (Hari)</label>
+                            <input 
+                              type="number" 
+                              className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) > 28 ? 'border-orange-500 bg-orange-50' : ''}`} 
+                              value={formData.discipline.absencesNMinus1} 
+                              onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} 
+                            />
+                            {(formData.discipline.absencesNMinus1 || 0) > 28 && <p className="text-[10px] text-orange-600 font-bold mt-1 px-1">MELEBIHI BATAS 28 HARI!</p>}
+                        </div>
+                        <div>
+                            <label className={labelClass}>Kurang Jam Thn N-1 (Jam)</label>
+                            <input type="number" className={inputClass} value={formData.discipline.shortHoursNMinus1} onChange={e => updateFormData('discipline.shortHoursNMinus1', Number(e.target.value))} />
+                        </div>
+                     </div>
+                   )}
                 </div>
               )}
             </div>

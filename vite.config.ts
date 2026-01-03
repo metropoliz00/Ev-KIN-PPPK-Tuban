@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig(({ mode }) => {
     // Load env file based on `mode` in the current working directory.
-    const env = loadEnv(mode, process.cwd(), '');
+    // Fix: Use path.resolve('.') as an alternative to process.cwd() to fix type errors on 'Process'
+    const env = loadEnv(mode, path.resolve('.'), '');
     
     return {
       server: {
@@ -19,7 +20,8 @@ export default defineConfig(({ mode }) => {
       },
       resolve: {
         alias: {
-          '@': path.resolve(__dirname, './'),
+          // Fix: Use path.resolve('.') instead of __dirname which is not available in ES modules environments
+          '@': path.resolve('.'),
         }
       },
       build: {

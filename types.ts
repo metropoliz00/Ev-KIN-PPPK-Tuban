@@ -6,6 +6,8 @@ export interface DisciplineData {
   shortHoursN: number; // Current year deficiency
   absencesNMinus1?: number; // Previous year (for 5-year contracts)
   shortHoursNMinus1?: number; // Previous year deficiency
+  consecutiveAbsence10Days: boolean; // 10 days consecutive rule Year N
+  consecutiveAbsence10DaysNMinus1: boolean; // New: 10 days consecutive rule Year N-1
 }
 
 export type Predicate = 'SANGAT_BAIK' | 'BAIK' | 'BUTUH_PERBAIKAN' | 'KURANG' | 'SANGAT_KURANG' | 'TIDAK_MENGUMPULKAN';
