@@ -50,6 +50,7 @@ const calculateYearlyDisciplineScore = (
  * Logika perhitungan skor disiplin berdasarkan masa kontrak.
  * Kontrak 1 Tahun: Menggunakan data Tahun N saja (100%).
  * Kontrak 5 Tahun: Tahun N (Berjalan) Bobot 60% + Tahun N-1 (Sebelumnya) Bobot 40%.
+ * Persentase dihitung dari skor maksimal (100).
  */
 const calculateDisciplineScore = (data: DisciplineData, type: ContractType): number => {
   if (type === '1_YEAR') {
@@ -76,7 +77,7 @@ const calculateDisciplineScore = (data: DisciplineData, type: ContractType): num
       data.absent10DaysConsecutive
     );
     
-    // Gabungan bobot 40% tahun sebelumnya dan 60% tahun berjalan
+    // Gabungan bobot 40% tahun sebelumnya dan 60% tahun berjalan dari nilai maksimal
     return (scoreNMinus1 * 0.4) + (scoreN * 0.6);
   }
 };
@@ -164,7 +165,7 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   // Pembobotan internal kualifikasi (Pendidikan 40%, JP 40%, MOOC 20%)
   const sQualification = (scoreEdu * 0.4) + (scoreJP * 0.4) + (scoreMOOC * 0.2);
 
-  // Kalkulasi Nilai Akhir sesuai Bobot yang Ditentukan
+  // Kalkulasi Nilai Akhir sesuai Bobot yang Ditentukan dalam instruksi
   const totalScore = 
     (sDiscipline * 0.4) + 
     (sSKP * 0.15) + 

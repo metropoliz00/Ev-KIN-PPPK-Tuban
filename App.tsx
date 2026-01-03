@@ -75,6 +75,21 @@ const App: React.FC = () => {
     }
   };
 
+  // Logika khusus untuk TKS agar otomatis mencentang pelanggaran berat
+  const handleAbsencesNChange = (val: number) => {
+    updateFormData('discipline.absencesN', val);
+    if (val >= 28) {
+      updateFormData('discipline.absentMoreThan28Days', true);
+    }
+  };
+
+  const handleAbsencesNMinus1Change = (val: number) => {
+    updateFormData('discipline.absencesNMinus1', val);
+    if (val >= 28) {
+      updateFormData('discipline.absentMoreThan28DaysNMinus1', true);
+    }
+  };
+
   const chartData = [
     { name: 'Disiplin', score: result.scoreDiscipline, weight: '40%' },
     { name: 'SKP', score: result.scoreSKP, weight: '15%' },
@@ -255,7 +270,7 @@ const App: React.FC = () => {
                         min="0"
                         className={`${inputClass} ${formData.discipline.absencesN >= 28 ? 'border-red-500 bg-red-50' : ''}`}
                         value={formData.discipline.absencesN} 
-                        onChange={e => updateFormData('discipline.absencesN', Number(e.target.value))} 
+                        onChange={e => handleAbsencesNChange(Number(e.target.value))} 
                       />
                     </div>
                     <div>
@@ -271,14 +286,14 @@ const App: React.FC = () => {
                 </div>
                 
                 <div className="space-y-3 pt-2 border-t border-slate-200">
-                  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28Days || formData.discipline.absencesN >= 28 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                  <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28Days ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
                     <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
                       Ketidakhadiran tanpa keterangan sah >= 28 hari (Thn N)
                     </label>
                     <input 
                       type="checkbox" 
                       className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
-                      checked={formData.discipline.absentMoreThan28Days || formData.discipline.absencesN >= 28} 
+                      checked={formData.discipline.absentMoreThan28Days} 
                       onChange={e => updateFormData('discipline.absentMoreThan28Days', e.target.checked)} 
                     />
                   </div>
@@ -314,7 +329,7 @@ const App: React.FC = () => {
                               min="0"
                               className={`${inputClass} ${(formData.discipline.absencesNMinus1 || 0) >= 28 ? 'border-red-500 bg-red-50' : ''}`}
                               value={formData.discipline.absencesNMinus1} 
-                              onChange={e => updateFormData('discipline.absencesNMinus1', Number(e.target.value))} 
+                              onChange={e => handleAbsencesNMinus1Change(Number(e.target.value))} 
                             />
                         </div>
                         <div>
@@ -330,14 +345,14 @@ const App: React.FC = () => {
                    </div>
 
                    <div className="space-y-3 pt-2 border-t border-slate-200">
-                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) >= 28 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
+                    <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28DaysNMinus1 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
                         <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
                         Ketidakhadiran tanpa keterangan sah >= 28 hari (Thn N-1)
                         </label>
                         <input 
                         type="checkbox" 
                         className="w-5 h-5 accent-red-600 rounded cursor-pointer" 
-                        checked={formData.discipline.absentMoreThan28DaysNMinus1 || (formData.discipline.absencesNMinus1 || 0) >= 28} 
+                        checked={formData.discipline.absentMoreThan28DaysNMinus1} 
                         onChange={e => updateFormData('discipline.absentMoreThan28DaysNMinus1', e.target.checked)} 
                         />
                     </div>
@@ -476,7 +491,6 @@ const App: React.FC = () => {
                   </ResponsiveContainer>
                 </div>
 
-                {/* Bagian Simpulan Rekomendasi */}
                 <div className={`mt-4 p-6 rounded-[1.5rem] border-2 text-center transition-all ${
                   result.isEligible ? 'bg-emerald-50/50 border-emerald-100' : 'bg-red-50/50 border-red-100'
                 }`}>
