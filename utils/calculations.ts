@@ -35,6 +35,7 @@ const calculateYearlyDisciplineScore = (
   isFatalMoreThan28: boolean, 
   isFatalConsecutive10: boolean
 ): number => {
+  // Skor menjadi 0 jika TKS >= 28 ATAU 10 hari berturut-turut (sebagai komponen skor)
   let score = getAbsenceScore(days, isFatalConsecutive10 || isFatalMoreThan28 || days >= 28);
   
   if (score === 0) return 0;
@@ -180,27 +181,26 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   } else if (totalScore >= 42) {
     predicate = 'KURANG';
   } else {
-    predicate = 'SANGAT KURANG';
+    predicate = 'SANGAT_KURANG';
   }
 
-  // Cek Pelanggaran Disiplin Fatal (TKS > 28 hari atau 10 hari berturut-turut)
-  const hasFatalViolationN = input.discipline.absencesN >= 28 || input.discipline.absentMoreThan28Days || input.discipline.absent10DaysConsecutive;
-  const hasFatalViolationNMinus1 = input.contractType === '5_YEARS' && (
-    (input.discipline.absencesNMinus1 || 0) >= 28 || 
-    input.discipline.absentMoreThan28DaysNMinus1 || 
+  // Logika Fatal Update: TKS > 28 DAN 10 hari berturut-turut (Sesuai Permintaan)
+  const isFatalN = (input.discipline.absencesN >= 28 || input.discipline.absentMoreThan28Days) && input.discipline.absent10DaysConsecutive;
+  const isFatalNMinus1 = input.contractType === '5_YEARS' && (
+    ((input.discipline.absencesNMinus1 || 0) >= 28 || input.discipline.absentMoreThan28DaysNMinus1) && 
     input.discipline.absent10DaysConsecutiveNMinus1
   );
   
-  const hasAnyFatalViolation = hasFatalViolationN || hasFatalViolationNMinus1;
+  const hasFatalViolation = isFatalN || isFatalNMinus1;
 
   let isEligible = false;
   let recommendation = '';
   const scoreLabel = totalScore.toFixed(2);
 
-  // Jika ada pelanggaran fatal, otomatis TIDAK DIREKOMENDASIKAN
-  if (hasAnyFatalViolation) {
+  // Jika kondisi gabungan fatal terpenuhi, otomatis TIDAK DIREKOMENDASIKAN
+  if (hasFatalViolation) {
     isEligible = false;
-    recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat ${predicate}, namun dikarenakan terdapat PELANGGARAN DISIPLIN BERAT (TKS >= 28 hari atau 10 hari berturut-turut), maka yang bersangkutan TIDAK DIREKOMENDASIKAN untuk diperpanjang masa perjanjian kerjanya.`;
+    recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat ${predicate}, namun dikarenakan terdapat PELANGGARAN DISIPLIN BERAT (TKS >= 28 hari DAN 10 hari berturut-turut tanpa alasan sah), maka yang bersangkutan TIDAK DIREKOMENDASIKAN untuk diperpanjang masa perjanjian kerjanya.`;
   } else if (predicate === 'SANGAT BAIK') {
     isEligible = true;
     recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat SANGAT BAIK, maka yang bersangkutan DIREKOMENDASIKAN UNTUK DIPERPANJANG masa perjanjian kerjanya.`;
@@ -220,7 +220,7 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
     scoreBehavior: sBehavior,
     scoreQualification: sQualification,
     totalScore,
-    predicate,
+    predicate: predicate.replace('_', ' '),
     recommendation,
     isEligible,
     isHealthy: true

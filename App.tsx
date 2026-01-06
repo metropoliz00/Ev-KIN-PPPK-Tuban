@@ -75,7 +75,6 @@ const App: React.FC = () => {
     }
   };
 
-  // Logika khusus untuk TKS agar otomatis mencentang pelanggaran berat
   const handleAbsencesNChange = (val: number) => {
     updateFormData('discipline.absencesN', val);
     if (val >= 28) {
@@ -251,7 +250,6 @@ const App: React.FC = () => {
 
           <InputSection title="Disiplin & Kehadiran" description="Data TKS (Tanpa Keterangan Sah) dan Akumulasi Kekurangan Jam Kerja">
             <div className="space-y-6">
-              {/* Seksi Tahun N */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:shadow-sm">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-xs font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
@@ -311,7 +309,6 @@ const App: React.FC = () => {
                 </div>
               </div>
 
-              {/* Seksi Tahun N-1 */}
               {formData.contractType === '5_YEARS' && (
                 <div className="bg-slate-50 p-5 rounded-2xl border border-slate-100 transition-all hover:bg-white hover:shadow-sm">
                    <div className="flex justify-between items-center mb-4">
@@ -446,7 +443,6 @@ const App: React.FC = () => {
           </InputSection>
         </div>
 
-        {/* Sidebar Hasil */}
         <div className="lg:col-span-5">
           <div className="sticky top-32 space-y-6">
             <div className="bg-white rounded-[2rem] shadow-2xl border border-slate-100 overflow-hidden transform transition-all">
@@ -519,11 +515,6 @@ const App: React.FC = () => {
 
       <footer className="mt-20 py-10 border-t border-slate-200 bg-white">
         <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-2 mb-2 opacity-50">
-             <div className="w-8 h-[1px] bg-slate-400"></div>
-             <div className="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
-             <div className="w-8 h-[1px] bg-slate-400"></div>
-          </div>
           <p className="text-slate-500 font-bold text-sm tracking-tight">
             Sistem Evaluasi Kinerja &copy; 2025
           </p>
