@@ -50,7 +50,6 @@ const calculateYearlyDisciplineScore = (
  * Logika perhitungan skor disiplin berdasarkan masa kontrak.
  * Kontrak 1 Tahun: Menggunakan data Tahun N saja (100%).
  * Kontrak 5 Tahun: Tahun N (Berjalan) Bobot 60% + Tahun N-1 (Sebelumnya) Bobot 40%.
- * Persentase dihitung dari skor maksimal (100).
  */
 const calculateDisciplineScore = (data: DisciplineData, type: ContractType): number => {
   if (type === '1_YEAR') {
@@ -61,7 +60,6 @@ const calculateDisciplineScore = (data: DisciplineData, type: ContractType): num
       data.absent10DaysConsecutive
     );
   } else {
-    // Penilaian Tahun N-1 (Bobot 40% dari total nilai komponen disiplin)
     const scoreNMinus1 = calculateYearlyDisciplineScore(
       data.absencesNMinus1 || 0, 
       data.shortHoursNMinus1 || 0, 
@@ -69,7 +67,6 @@ const calculateDisciplineScore = (data: DisciplineData, type: ContractType): num
       !!data.absent10DaysConsecutiveNMinus1
     );
 
-    // Penilaian Tahun N (Bobot 60% dari total nilai komponen disiplin)
     const scoreN = calculateYearlyDisciplineScore(
       data.absencesN, 
       data.shortHoursN, 
@@ -77,7 +74,6 @@ const calculateDisciplineScore = (data: DisciplineData, type: ContractType): num
       data.absent10DaysConsecutive
     );
     
-    // Gabungan bobot 40% tahun sebelumnya dan 60% tahun berjalan dari nilai maksimal
     return (scoreNMinus1 * 0.4) + (scoreN * 0.6);
   }
 };
@@ -162,10 +158,9 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   const scoreEdu = input.qualification.educationMatched ? 100 : 0;
   const scoreJP = getJPScore(input.qualification.trainingJP);
   const scoreMOOC = input.qualification.moocOrientation ? 100 : 0;
-  // Pembobotan internal kualifikasi (Pendidikan 40%, JP 40%, MOOC 20%)
   const sQualification = (scoreEdu * 0.4) + (scoreJP * 0.4) + (scoreMOOC * 0.2);
 
-  // Kalkulasi Nilai Akhir sesuai Bobot yang Ditentukan dalam instruksi
+  // Kalkulasi Nilai Akhir
   const totalScore = 
     (sDiscipline * 0.4) + 
     (sSKP * 0.15) + 
@@ -174,7 +169,7 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
     (sBehavior * 0.15) + 
     (sQualification * 0.1);
 
-  // Penentuan Predikat berdasarkan Rentang Nilai
+  // Penentuan Predikat
   let predicate = '';
   if (totalScore >= 90) {
     predicate = 'SANGAT BAIK';
@@ -188,12 +183,25 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
     predicate = 'SANGAT KURANG';
   }
 
+  // Cek Pelanggaran Disiplin Fatal (TKS > 28 hari atau 10 hari berturut-turut)
+  const hasFatalViolationN = input.discipline.absencesN >= 28 || input.discipline.absentMoreThan28Days || input.discipline.absent10DaysConsecutive;
+  const hasFatalViolationNMinus1 = input.contractType === '5_YEARS' && (
+    (input.discipline.absencesNMinus1 || 0) >= 28 || 
+    input.discipline.absentMoreThan28DaysNMinus1 || 
+    input.discipline.absent10DaysConsecutiveNMinus1
+  );
+  
+  const hasAnyFatalViolation = hasFatalViolationN || hasFatalViolationNMinus1;
+
   let isEligible = false;
   let recommendation = '';
   const scoreLabel = totalScore.toFixed(2);
 
-  // Simpulan Rekomendasi berdasarkan Predikat
-  if (predicate === 'SANGAT BAIK') {
+  // Jika ada pelanggaran fatal, otomatis TIDAK DIREKOMENDASIKAN
+  if (hasAnyFatalViolation) {
+    isEligible = false;
+    recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat ${predicate}, namun dikarenakan terdapat PELANGGARAN DISIPLIN BERAT (TKS >= 28 hari atau 10 hari berturut-turut), maka yang bersangkutan TIDAK DIREKOMENDASIKAN untuk diperpanjang masa perjanjian kerjanya.`;
+  } else if (predicate === 'SANGAT BAIK') {
     isEligible = true;
     recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat SANGAT BAIK, maka yang bersangkutan DIREKOMENDASIKAN UNTUK DIPERPANJANG masa perjanjian kerjanya.`;
   } else if (predicate === 'BAIK' || predicate === 'BUTUH PERBAIKAN') {
