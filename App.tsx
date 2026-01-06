@@ -286,7 +286,7 @@ const App: React.FC = () => {
                 <div className="space-y-3 pt-2 border-t border-slate-200">
                   <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28Days ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
                     <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
-                      Ketidakhadiran tanpa keterangan sah >= 28 hari (Thn N)
+                      Ketidakhadiran tanpa keterangan sah lebih dari atau sama dengan 28 hari (Thn N)
                     </label>
                     <input 
                       type="checkbox" 
@@ -344,7 +344,7 @@ const App: React.FC = () => {
                    <div className="space-y-3 pt-2 border-t border-slate-200">
                     <div className={`flex items-center justify-between p-3 rounded-xl border transition-all ${formData.discipline.absentMoreThan28DaysNMinus1 ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100 hover:border-red-200'}`}>
                         <label className="text-sm font-medium text-slate-700 leading-tight pr-4">
-                        Ketidakhadiran tanpa keterangan sah >= 28 hari (Thn N-1)
+                        Ketidakhadiran tanpa keterangan sah lebih dari atau sama dengan 28 hari (Thn N-1)
                         </label>
                         <input 
                         type="checkbox" 

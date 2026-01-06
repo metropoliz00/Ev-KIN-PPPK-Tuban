@@ -14,7 +14,7 @@ import {
  * 2) 1-2 hari = 80
  * 3) 3-20 hari = 30
  * 4) 21-27 hari = 20
- * 5) >= 28 hari atau 10 hari berturut-turut = 0
+ * 5) 28 hari atau lebih atau 10 hari berturut-turut = 0
  */
 const getAbsenceScore = (days: number, isConsecutive: boolean): number => {
   if (isConsecutive || days >= 28) return 0;
@@ -27,7 +27,6 @@ const getAbsenceScore = (days: number, isConsecutive: boolean): number => {
 
 /**
  * Menghitung skor disiplin tahunan.
- * Mengurangi 10 poin jika akumulasi kekurangan jam kerja > 157.5 jam.
  */
 const calculateYearlyDisciplineScore = (
   days: number, 
@@ -35,7 +34,6 @@ const calculateYearlyDisciplineScore = (
   isFatalMoreThan28: boolean, 
   isFatalConsecutive10: boolean
 ): number => {
-  // Skor menjadi 0 jika TKS >= 28 ATAU 10 hari berturut-turut (sebagai komponen skor)
   let score = getAbsenceScore(days, isFatalConsecutive10 || isFatalMoreThan28 || days >= 28);
   
   if (score === 0) return 0;
@@ -47,11 +45,6 @@ const calculateYearlyDisciplineScore = (
   return Math.max(0, score);
 };
 
-/**
- * Logika perhitungan skor disiplin berdasarkan masa kontrak.
- * Kontrak 1 Tahun: Menggunakan data Tahun N saja (100%).
- * Kontrak 5 Tahun: Tahun N (Berjalan) Bobot 60% + Tahun N-1 (Sebelumnya) Bobot 40%.
- */
 const calculateDisciplineScore = (data: DisciplineData, type: ContractType): number => {
   if (type === '1_YEAR') {
     return calculateYearlyDisciplineScore(
@@ -121,7 +114,6 @@ const getJPScore = (jp: number): number => {
 };
 
 export const calculateEvaluation = (input: EvaluationInput): EvaluationResult => {
-  // Syarat Mutlak: Kesehatan
   if (!input.isHealthy) {
     return {
       scoreDiscipline: 0,
@@ -132,36 +124,27 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
       scoreQualification: 0,
       totalScore: 0,
       predicate: 'SANGAT KURANG',
-      recommendation: 'TIDAK DIREKOMENDASIKAN untuk diperpanjang masa perjanjian kerjanya (Kesehatan Tidak Memenuhi Syarat)',
+      recommendation: 'TIDAK DIREKOMENDASIKAN untuk diperpanjang masa perjanjian kerjanya dikarenakan kondisi Kesehatan yang Tidak Memenuhi Syarat.',
       isEligible: false,
       isHealthy: false
     };
   }
 
-  // 1. Disiplin (Bobot 40%)
   const sDiscipline = calculateDisciplineScore(input.discipline, input.contractType);
-  
-  // 2. SKP (Bobot 15%)
   const sSKP = getPredicateScore(input.skpPredicate);
-  
-  // 3. Integritas (Bobot 10%)
   const sIntegrity = getIntegrityScore(input.integrity);
   
-  // 4. Jabatan (Bobot 10%)
   let sJob = 0;
   if (input.jobAvailability === 'AVAILABLE') sJob = 100;
   else sJob = 0;
 
-  // 5. Perilaku (Bobot 15%)
   const sBehavior = getBehaviorScore(input.behaviorPredicate);
 
-  // 6. Kualifikasi (Bobot 10%)
   const scoreEdu = input.qualification.educationMatched ? 100 : 0;
   const scoreJP = getJPScore(input.qualification.trainingJP);
   const scoreMOOC = input.qualification.moocOrientation ? 100 : 0;
   const sQualification = (scoreEdu * 0.4) + (scoreJP * 0.4) + (scoreMOOC * 0.2);
 
-  // Kalkulasi Nilai Akhir
   const totalScore = 
     (sDiscipline * 0.4) + 
     (sSKP * 0.15) + 
@@ -170,7 +153,6 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
     (sBehavior * 0.15) + 
     (sQualification * 0.1);
 
-  // Penentuan Predikat
   let predicate = '';
   if (totalScore >= 90) {
     predicate = 'SANGAT BAIK';
@@ -181,10 +163,10 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   } else if (totalScore >= 42) {
     predicate = 'KURANG';
   } else {
-    predicate = 'SANGAT_KURANG';
+    predicate = 'SANGAT KURANG';
   }
 
-  // Logika Fatal Update: TKS > 28 DAN 10 hari berturut-turut (Sesuai Permintaan)
+  // Logika Fatal Update: TKS lebih dari atau sama dengan 28 DAN 10 hari berturut-turut
   const isFatalN = (input.discipline.absencesN >= 28 || input.discipline.absentMoreThan28Days) && input.discipline.absent10DaysConsecutive;
   const isFatalNMinus1 = input.contractType === '5_YEARS' && (
     ((input.discipline.absencesNMinus1 || 0) >= 28 || input.discipline.absentMoreThan28DaysNMinus1) && 
@@ -197,10 +179,9 @@ export const calculateEvaluation = (input: EvaluationInput): EvaluationResult =>
   let recommendation = '';
   const scoreLabel = totalScore.toFixed(2);
 
-  // Jika kondisi gabungan fatal terpenuhi, otomatis TIDAK DIREKOMENDASIKAN
   if (hasFatalViolation) {
     isEligible = false;
-    recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat ${predicate}, namun dikarenakan terdapat PELANGGARAN DISIPLIN BERAT (TKS >= 28 hari DAN 10 hari berturut-turut tanpa alasan sah), maka yang bersangkutan TIDAK DIREKOMENDASIKAN untuk diperpanjang masa perjanjian kerjanya.`;
+    recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat ${predicate}, namun dikarenakan terdapat PELANGGARAN DISIPLIN BERAT (TKS lebih dari atau sama dengan 28 hari DAN 10 hari berturut-turut tanpa alasan sah), maka yang bersangkutan TIDAK DIREKOMENDASIKAN untuk diperpanjang masa perjanjian kerjanya.`;
   } else if (predicate === 'SANGAT BAIK') {
     isEligible = true;
     recommendation = `Berdasarkan perolehan Nilai Akhir ${scoreLabel} dengan predikat SANGAT BAIK, maka yang bersangkutan DIREKOMENDASIKAN UNTUK DIPERPANJANG masa perjanjian kerjanya.`;
